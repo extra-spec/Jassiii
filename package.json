@@ -1,0 +1,37 @@
+{
+  "name": "strike-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--experimental-sqlite tsx server.ts",
+    "build": "next build",
+    "start": "cross-env NODE_ENV=production NODE_OPTIONS=--experimental-sqlite tsx server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "cross-env NODE_OPTIONS=--experimental-sqlite tsx --test tests/*.test.ts",
+    "simulate": "tsx scripts/simulate-exotel.ts",
+    "call": "cross-env NODE_OPTIONS=--experimental-sqlite tsx scripts/call.ts",
+    "wa:register": "cross-env NODE_OPTIONS=--experimental-sqlite tsx scripts/wa-register.ts",
+    "wa:send": "cross-env NODE_OPTIONS=--experimental-sqlite tsx scripts/wa-send.ts"
+  },
+  "dependencies": {
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "ws": "8.18.0",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.7.4",
+    "@types/react": "18.3.11",
+    "@types/ws": "8.5.12",
+    "autoprefixer": "10.4.20",
+    "cross-env": "7.0.3",
+    "postcss": "8.4.47",
+    "tailwindcss": "3.4.13",
+    "tsx": "4.19.1",
+    "typescript": "5.6.2"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

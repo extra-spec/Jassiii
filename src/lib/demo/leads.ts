@@ -21,13 +21,22 @@ export function normalizeLead(o: unknown): LeadFields {
 }
 export const mergeLead = (a: LeadFields, b: LeadFields): LeadFields => ({ ...a, ...b });
 
-/** Removes [[lead:{...}]] tags from a reply and returns the merged fields they carried. */
+/** Reads "name=Neha | intent=buy | budget=2.5 Cr" into lead fields. */
+function parsePairs(body: string): LeadFields {
+  const o: Record<string, string> = {};
+  for (const part of body.split("|")) { const i = part.indexOf("="); if (i > 0) o[part.slice(0, i).trim().toLowerCase()] = part.slice(i + 1).trim(); }
+  return normalizeLead(o);
+}
+
+/** Removes the hidden lead note from a reply (new <<LEAD ...>> format, and the older [[lead:{...}]] one) and returns the fields it carried. */
 export function extractLeadTags(raw: string): { text: string; lead: LeadFields } {
   let lead: LeadFields = {};
-  const text = raw.replace(/\[\[\s*lead\s*:\s*(\{[\s\S]*?\})\s*\]\]/gi, (_, j: string) => {
+  let text = raw.replace(/<<\s*LEAD\b([\s\S]*?)>>/gi, (_m, body: string) => { lead = mergeLead(lead, parsePairs(body)); return ""; });
+  text = text.replace(/\[\[\s*lead\s*:\s*(\{[\s\S]*?\})\s*\]\]/gi, (_m, j: string) => {
     try { lead = mergeLead(lead, normalizeLead(JSON.parse(j))); } catch { /* ignore a malformed tag */ }
     return "";
   });
+  text = text.replace(/<<\s*LEAD[\s\S]*$/i, "").replace(/\[\[\s*lead[\s\S]*$/i, ""); // never show a half-written note to the customer
   return { text, lead };
 }
 

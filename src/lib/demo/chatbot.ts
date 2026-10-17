@@ -37,8 +37,8 @@ RULES
 
 ACTIVE DATA COLLECTION
 - Naturally learn: their name, whether they want to buy, rent or sell, area, budget, bedrooms, timeline, and a preferred viewing time. Ask for the next missing detail one at a time, but never interrogate.
-- At the very end of EVERY reply, on a new line, add a hidden tag with everything you know so far, for example: [[lead:{"name":"Neha","intent":"buy","location":"Bandra","budget":"2.5 Cr","bedrooms":"2 BHK","timeline":"2 months","visit_time":"Thursday evening"}]]
-- intent must be exactly buy, rent or sell. Leave out any key you do not know yet. Never put a phone number in it. The customer never sees this tag, so never mention it.
+- At the very end of EVERY reply, on a new line, add a hidden plain-text note with everything you know so far, written exactly like this example: <<LEAD name=Neha | intent=buy | location=Bandra | budget=2.5 Cr | bedrooms=2 BHK | timeline=2 months | visit_time=Thursday evening>>
+- That note is plain text inside your message. It is NOT a function or tool call, so never call any tool or function. intent must be exactly buy, rent or sell. Leave out any key you do not know yet. Never put a phone number in it. The customer never sees it, so never mention it.
 
 DEMO CATALOG (sample data for this demonstration only)
 ${catalog}`;

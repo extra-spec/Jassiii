@@ -3,6 +3,7 @@ import { chatInstructions, parseReply, propertyById, type Property } from "../li
 import { analysisFromLead } from "../lib/demo/leads";
 import type { Inbound } from "./inbound";
 import type { WaSender } from "./kapso";
+import { buildExtractMessages, parseExtract } from "./extract";
 import { buildWaReport } from "./report";
 import { rowToLead, type WaLeadRow, type WaRepo } from "./repo";
 
@@ -66,11 +67,12 @@ export class WhatsAppAgent {
     if (!text) return void (await this.say(to, "Sorry, I couldn't hear that voice note clearly. Could you send it again, or type your message?"));
     if (OPT_OUT.test(text)) { repo.setOptOut(to); return void (await this.say(to, "Okay, you won't get further messages from us. Message us any time if you'd like help again.")); }
 
-    const raw = await this.d.ai.reply([{ role: "system", content: chatInstructions(this.d.biz) }, ...repo.history(to, 16)]);
-    const { text: body, ids, lead } = parseReply(raw);
-    const row = repo.mergeLead(to, lead, m.kind === "audio" ? 1 : 0);
+    // Step 1: just talk. The reply prompt has no hidden notes or tags, so the model has nothing to mistake for a tool call.
+    const raw = await this.d.ai.reply([{ role: "system", content: chatInstructions(this.d.biz, { tags: false }) }, ...repo.history(to, 16)]);
+    const { text: body, ids: tagIds, lead: tagLead } = parseReply(raw); // still strips any stray tag the model writes
+    let row = repo.mergeLead(to, tagLead, m.kind === "audio" ? 1 : 0);
 
-    const reply = body || (ids.length ? "Here's one that might suit you:" : "Sorry, could you say that again?");
+    const reply = body || (tagIds.length ? "Here's one that might suit you:" : "Sorry, could you say that again?");
     let sentAsVoice = false;
     if (m.kind === "audio" && this.d.voice) {
       try {
@@ -79,6 +81,14 @@ export class WhatsAppAgent {
       } catch (e) { this.log("voice reply failed, sending text:", (e as Error).message); }
     }
     if (!sentAsVoice) await this.say(to, reply);
+
+    // Step 2 (quiet): pick out the customer's details and which listings to show. If this fails the reply has already gone out.
+    let ids = tagIds;
+    try {
+      const found = parseExtract(await this.d.ai.reply(buildExtractMessages(repo.history(to, 8))));
+      row = repo.mergeLead(to, found.lead, 0);
+      ids = [...new Set([...tagIds, ...found.ids])].slice(0, 2);
+    } catch (e) { this.log("details step failed (the reply was still sent):", (e as Error).message); }
 
     for (const id of ids) {
       const p = propertyById(id); if (!p) continue;

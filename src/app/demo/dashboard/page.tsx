@@ -54,7 +54,7 @@ export default function DashboardPage() {
   useEffect(() => { if (!pending) return; const t = setInterval(() => setReal(loadCalls()), 1500); return () => clearInterval(t); }, [pending]);
 
   const name = biz || PERSONAS[vertical].defaultBiz;
-  const all = useMemo(() => [...live, ...real, ...seedAll(vertical, name, now)].sort((a, b) => b.startedAt - a.startedAt), [real, vertical, name, now]);
+  const all = useMemo(() => [...live, ...real, ...seedAll(vertical, name, now)].sort((a, b) => b.startedAt - a.startedAt), [live, real, vertical, name, now]);
   const selected = all.find((c) => c.id === open) ?? null;
   const leads = all.filter((c) => c.analysis && (c.analysis.callerName || c.analysis.intent));
   const actions = all.filter((c) => c.analysis?.outcome === "booking_requested" || c.analysis?.outcome === "callback_requested").length;

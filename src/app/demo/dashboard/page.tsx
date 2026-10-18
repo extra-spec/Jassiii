@@ -5,9 +5,10 @@ import { cleanBiz, PERSONAS, type Vertical } from "@/lib/demo/personas";
 import { fmtDuration, leadStatus, loadCalls, seedAll, type CallRecord, type LeadStatus } from "@/lib/demo/store";
 import { buildDailySummary } from "@/lib/demo/summary";
 import { WaText } from "@/components/wa";
+import Followups from "./Followups";
 
-type Tab = "dashboard" | "chats" | "calls" | "leads" | "daily report";
-const TABS: Tab[] = ["dashboard", "chats", "calls", "leads", "daily report"];
+type Tab = "dashboard" | "chats" | "calls" | "leads" | "follow-ups" | "daily report";
+const TABS: Tab[] = ["dashboard", "chats", "calls", "leads", "follow-ups", "daily report"];
 
 const STATUS: Record<LeadStatus, { label: string; cls: string }> = {
   NEW: { label: "New", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [now] = useState(() => Date.now());
   const [live, setLive] = useState<CallRecord[]>([]);
   const [liveOn, setLiveOn] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -38,6 +40,7 @@ export default function DashboardPage() {
     const c = q.get("call"); if (c && list.some((x) => x.id === c)) setOpen(c);
     let token = q.get("token");
     try { if (token) localStorage.setItem("strike_dash_token", token); else token = localStorage.getItem("strike_dash_token"); } catch { /* storage blocked */ }
+    setToken(token);
     if (!token) return;
     const pull = async () => {
       try {
@@ -122,6 +125,8 @@ export default function DashboardPage() {
                 <td className="px-4 py-3 font-medium">{a.callerName ?? "Not given"}{mine(c)}</td><td className="px-4 py-3 text-black/60">{chan(c)}</td>
                 <td className="px-4 py-3 text-black/70">{a.intent ?? "-"}</td><td className="px-4 py-3 text-black/60">{a.requirement ?? "-"}</td><td className="px-4 py-3 text-black/60">{a.preferredTime ?? "-"}</td>
                 <td className="px-4 py-3"><Pill cls={STATUS[leadStatus(a)].cls}>{STATUS[leadStatus(a)].label}</Pill></td></tr>); })}</tbody></table></div></div>}
+
+          {tab === "follow-ups" && <div className="mt-5"><Followups token={token} /></div>}
 
           {tab === "daily report" && <div className="mt-5 grid gap-5 md:grid-cols-[1fr_280px]">
             <div className="rounded-xl border border-black/10 bg-[#EFEAE2] p-5 shadow-sm"><p className="mb-3 text-xs text-black/50">Today at 8:00 PM, on the agent&apos;s WhatsApp</p>

@@ -46,6 +46,18 @@ async function main() {
         res.statusCode = data ? 200 : 401; res.setHeader("Content-Type", "application/json"); res.setHeader("Cache-Control", "no-store");
         res.end(JSON.stringify(data ?? { error: "unauthorized" })); return;
       }
+      if (wa && url.pathname.startsWith("/api/whatsapp/followups")) {
+        const action = url.pathname.split("/")[4] || "list";
+        res.setHeader("Content-Type", "application/json"); res.setHeader("Cache-Control", "no-store");
+        if ((action === "list") !== (req.method === "GET")) { res.statusCode = 405; res.end(JSON.stringify({ error: "wrong method" })); return; }
+        let body: Record<string, unknown> = {};
+        if (req.method === "POST") {
+          const chunks: Buffer[] = []; let size = 0;
+          for await (const c of req) { size += (c as Buffer).length; if (size > 100_000) break; chunks.push(c as Buffer); }
+          try { body = JSON.parse(Buffer.concat(chunks).toString() || "{}"); } catch { res.statusCode = 400; res.end(JSON.stringify({ error: "bad json" })); return; }
+        }
+        const r = await wa.followupApi(action, url.searchParams.get("token"), body); res.statusCode = r.status; res.end(JSON.stringify(r.json)); return;
+      }
       if (url.pathname === "/api/whatsapp/status") { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(wa ? wa.status() : { configured: false })); return; }
       if (url.pathname === "/healthz") { res.end("ok"); return; }
       return handle(req, res);

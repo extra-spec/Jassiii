@@ -43,6 +43,8 @@ const whatsapp = z.object({
   DAILY_REPORT_TIME: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "must look like 20:00").default("20:00"),
   REPORT_TZ: z.string().default("Asia/Kolkata"),
   WA_VOICE_REPLIES: z.enum(["true", "false"]).default("false"),
+  FOLLOWUP_HOURS: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$/, "must look like 09:00-21:00").default("09:00-21:00"),
+  FOLLOWUP_AFTER_MINUTES: z.coerce.number().int().min(1).max(10080).default(120),
   DASHBOARD_TOKEN: z.string().min(12, "must be at least 12 characters").optional(),
 });
 export type WhatsAppEnv = z.infer<typeof whatsapp> & CoreEnv;
@@ -53,6 +55,7 @@ export type Env = CoreEnv & z.infer<typeof exotel>; // full env incl. Exotel (us
 export type ExotelEnv = z.infer<typeof exotel> & CoreEnv;
 
 const HELP: Record<string, string> = {
+  FOLLOWUP_HOURS: "The hours follow-ups may be sent, for example 09:00-21:00 (uses REPORT_TZ).",
   KAPSO_API_KEY: "Kapso dashboard -> Integrations -> API keys -> create a key and paste it here.",
   KAPSO_PHONE_NUMBER_ID: "Kapso dashboard -> WhatsApp -> Phone numbers -> copy the Phone number ID (numbers only).",
   KAPSO_WEBHOOK_SECRET: "Make up a long random text (16+ characters). The same text is given to Kapso when you run the register command.",

@@ -31,5 +31,9 @@ CREATE TABLE IF NOT EXISTS wa_leads (
   phone TEXT PRIMARY KEY, name TEXT, profile_name TEXT, intent TEXT, location TEXT, budget TEXT, bedrooms TEXT, timeline TEXT,
   visit_time TEXT, voice_notes INTEGER DEFAULT 0, opted_out INTEGER DEFAULT 0, alerted INTEGER DEFAULT 0,
   first_seen INTEGER NOT NULL, last_seen INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS wa_followups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT NOT NULL, text TEXT NOT NULL, reason TEXT, status TEXT NOT NULL DEFAULT 'draft',
+  error TEXT, created_at INTEGER NOT NULL, sent_at INTEGER);
+CREATE INDEX IF NOT EXISTS idx_wa_followups_phone ON wa_followups (phone, id);
 CREATE TABLE IF NOT EXISTS google_auth (id INTEGER PRIMARY KEY CHECK (id = 1), tokens TEXT, updated_at TEXT);
 `;
